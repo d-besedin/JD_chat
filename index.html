@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ПРАВДА.NET — Форум Пробуждённых</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@400;500;600;700&family=VT323&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #060b06;
+            --surface: #0b140b;
+            --surface2: #0f1c0f;
+            --gold: #c8a84b;
+            --gold2: #e8c96a;
+            --green: #1db954;
+            --red: #cc2222;
+            --text: #d4e8d4;
+            --text-dim: #6a8a6a;
+            --border: #1e3a1e;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.12) 2px, rgba(0,0,0,.12) 4px);
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* ── MODAL ── */
+        #modal-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,.85);
+            z-index: 99999;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+        #modal-overlay.open { display: flex; }
+
+        #modal-box {
+            background: var(--surface);
+            border: 1px solid var(--gold);
+            border-radius: 8px;
+            padding: 32px;
+            max-width: 340px;
+            width: 90%;
+            box-shadow: 0 0 40px var(--gold)33;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            position: relative;
+        }
+
+        #modal-box::before {
+            content: '⊘ СЕКРЕТНОЕ СООБЩЕНИЕ';
+            position: absolute; top: -1px; left: 50%; transform: translateX(-50%);
+            background: var(--gold);
+            color: var(--bg);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 9px;
+            padding: 2px 10px;
+            letter-spacing: 1px;
+            border-radius: 0 0 4px 4px;
+        }
+
+        #modal-title {
+            font-family: 'VT323', monospace;
+            font-size: 22px;
+            color: var(--gold);
+            letter-spacing: 1px;
+        }
+
+        #modal-body {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text);
+        }
+
+        #modal-btn {
+            align-self: flex-end;
+            background: var(--gold);
+            border: none;
+            border-radius: 4px;
+            padding: 8px 20px;
+            color: var(--bg);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            cursor: pointer;
+        }
+
+        #modal-btn:hover { background: var(--gold2); }
+
+        /* ── TOP BAR ── */
+        .top-bar {
+            background: linear-gradient(90deg, #0b140b, #0f1c0f, #0b140b);
+            border-bottom: 1px solid var(--gold);
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            height: 44px;
+            flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .top-bar::after {
+            content: '';
+            position: absolute; bottom: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+        }
+
+        .logo {
+            font-family: 'VT323', monospace;
+            font-size: 24px;
+            color: var(--gold);
+            letter-spacing: 2px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .logo span { color: var(--red); }
+
+        .ticker-wrap { flex: 1; overflow: hidden; margin: 0 16px; }
+
+        .ticker {
+            display: inline-block;
+            white-space: nowrap;
+            animation: ticker 40s linear infinite;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            color: var(--gold);
+        }
+
+        @keyframes ticker {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* ── LAYOUT ── */
+        .layout { display: flex; height: calc(100vh - 44px); }
+
+        /* ── LEFT SIDEBAR (ADS) ── */
+        .sidebar-left {
+            width: 190px;
+            flex-shrink: 0;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .sidebar-left::-webkit-scrollbar { display: none; }
+        @media (max-width: 768px) { .sidebar-left { display: none; } }
+
+        /* ── ADS ── */
+        .ad-block {
+            border: 2px solid;
+            padding: 10px;
+            font-size: 11px;
+            line-height: 1.5;
+            text-align: center;
+            cursor: pointer;
+            transition: all .2s;
+            position: relative;
+            overflow: hidden;
+            border-radius: 2px;
+        }
+
+        .ad-block:hover { filter: brightness(1.25); transform: scale(1.03); }
+
+        .ad-tag {
+            display: block;
+            background: rgba(0,0,0,.6);
+            color: #fff;
+            font-size: 8px;
+            padding: 1px 4px;
+            margin: -10px -10px 8px -10px;
+            font-family: 'Share Tech Mono', monospace;
+            letter-spacing: 1px;
+            text-align: left;
+        }
+
+        /* Casino */
+        .ad-casino {
+            border-color: #ff6600;
+            background: linear-gradient(135deg, #1a0800 0%, #0f0500 50%, #1a0a00 100%);
+            animation: casino-pulse 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes casino-pulse {
+            from { box-shadow: 0 0 8px #ff660055, inset 0 0 8px #ff220011; }
+            to   { box-shadow: 0 0 20px #ff6600aa, inset 0 0 20px #ff220033; }
+        }
+
+        .ad-casino .ad-title {
+            font-family: 'VT323', monospace;
+            font-size: 26px;
+            color: #ffcc00;
+            text-shadow: 0 0 10px #ff6600, 0 0 20px #ff3300;
+            animation: blink 0.9s step-end infinite;
+            display: block;
+            line-height: 1.1;
+        }
+
+        .ad-casino .ad-sub { color: #ff9944; font-size: 10px; }
+        .ad-casino .ad-big { font-family: 'VT323', monospace; font-size: 32px; color: #ff4400; text-shadow: 0 0 15px #ff2200; display: block; }
+
+        /* Illuminati */
+        .ad-illuminati {
+            border-color: var(--gold);
+            background: radial-gradient(ellipse at center, #1a1400 0%, #0a0800 100%);
+            animation: illuminati-glow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes illuminati-glow {
+            from { box-shadow: 0 0 10px var(--gold)44; }
+            to   { box-shadow: 0 0 25px var(--gold)99, inset 0 0 15px var(--gold)22; }
+        }
+
+        .ad-illuminati .ad-eye {
+            font-size: 34px;
+            display: block;
+            animation: spin-slow 10s linear infinite;
+            filter: drop-shadow(0 0 8px var(--gold));
+        }
+
+        @keyframes spin-slow { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+
+        .ad-illuminati .ad-title { font-family: 'Share Tech Mono', monospace; font-size: 12px; color: var(--gold2); margin: 6px 0 4px; display: block; font-weight: bold; }
+        .ad-illuminati .ad-sub { color: #a88830; font-size: 10px; }
+
+        /* Mason */
+        .ad-mason {
+            border-color: #8855dd;
+            background: linear-gradient(160deg, #0d0020 0%, #080015 100%);
+            animation: mason-pulse 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes mason-pulse {
+            from { box-shadow: 0 0 8px #8855dd33; }
+            to   { box-shadow: 0 0 20px #8855dd88, inset 0 0 10px #44008822; }
+        }
+
+        .ad-mason .ad-icon { font-size: 28px; display: block; filter: drop-shadow(0 0 6px #aa66ff); }
+        .ad-mason .ad-title { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: #cc99ff; margin: 6px 0 3px; display: block; font-weight: bold; }
+        .ad-mason .ad-sub { color: #8855cc; font-size: 10px; }
+
+        /* Ponasenko */
+        .ad-ponasenko {
+            border-color: #dd3333;
+            background: linear-gradient(135deg, #180000 0%, #0f0505 100%);
+            animation: pona-shake 5s ease-in-out infinite;
+        }
+
+        @keyframes pona-shake {
+            0%, 90%, 100% { transform: none; }
+            92% { transform: translateX(-1px); }
+            94% { transform: translateX(1px); }
+            96% { transform: translateX(-1px); }
+            98% { transform: translateX(0); }
+        }
+
+        .ad-ponasenko .ad-title { font-family: 'Share Tech Mono', monospace; font-size: 12px; color: #ff8888; display: block; margin: 4px 0; font-weight: bold; }
+        .ad-ponasenko .ad-discount { font-family: 'VT323', monospace; font-size: 28px; color: #ff3333; text-shadow: 0 0 10px #ff000088; display: block; }
+        .ad-ponasenko .ad-sub { font-size: 9px; color: #884444; }
+
+        /* Red pill */
+        .ad-redpill {
+            border-color: var(--red);
+            background: radial-gradient(ellipse at top, #200000 0%, #0f0000 100%);
+            animation: redpill-glow 1.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes redpill-glow {
+            from { box-shadow: 0 0 6px var(--red)44; }
+            to   { box-shadow: 0 0 18px var(--red)99; }
+        }
+
+        .ad-redpill .ad-icon { font-size: 28px; display: block; filter: drop-shadow(0 0 8px red); }
+        .ad-redpill .ad-title { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: #ff5555; display: block; margin: 4px 0; font-weight: bold; }
+        .ad-redpill .ad-free { font-family: 'VT323', monospace; font-size: 22px; color: #ff2222; display: block; animation: blink .7s step-end infinite; }
+
+        @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0; } }
+
+        /* ── CHAT MAIN ── */
+        .chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .chat-header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+            gap: 12px;
+        }
+
+        .bot-info { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+        .bot-avatar {
+            width: 42px; height: 42px;
+            border: 1.5px solid var(--gold);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+            background: var(--surface2);
+            box-shadow: 0 0 12px var(--gold)44;
+            flex-shrink: 0;
+        }
+
+        .bot-name {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 15px;
+            color: var(--gold);
+            letter-spacing: .5px;
+        }
+
+        .bot-status {
+            font-size: 12px;
+            color: var(--green);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 2px;
+        }
+
+        .online-dot {
+            width: 7px; height: 7px;
+            background: var(--green);
+            border-radius: 50%;
+            box-shadow: 0 0 6px var(--green);
+            animation: pulse-green 2s ease-in-out infinite;
+            flex-shrink: 0;
+        }
+
+        @keyframes pulse-green { 0%,100% { opacity:1; } 50% { opacity:.4; } }
+
+        /* Online users in header */
+        .header-users {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            overflow: hidden;
+        }
+
+        .header-user-chip {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 20px;
+            border: 1px solid;
+            white-space: nowrap;
+            opacity: .9;
+        }
+
+        .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+        .btn-exit {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            padding: 5px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all .15s;
+            white-space: nowrap;
+        }
+
+        .btn-exit:hover { border-color: var(--red); color: var(--red); }
+
+        /* ── MESSAGES ── */
+        #messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        #messages::-webkit-scrollbar { width: 4px; }
+        #messages::-webkit-scrollbar-track { background: transparent; }
+        #messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+        .msg {
+            max-width: 72%;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .msg.mine  { align-self: flex-end;   align-items: flex-end; }
+        .msg.other { align-self: flex-end;   align-items: flex-end; }
+        .msg.bot   { align-self: flex-start; align-items: flex-start; }
+
+        .msg-sender {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 0 4px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .sender-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .msg-bubble {
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 14px;
+            line-height: 1.6;
+            word-break: break-word;
+            position: relative;
+        }
+
+        .msg.mine .msg-bubble {
+            background: #0a2a1a;
+            border: 1px solid #1a5a2a;
+            border-bottom-right-radius: 3px;
+            color: #c8e8c8;
+        }
+
+        .msg.other .msg-bubble {
+            background: #0a1a25;
+            border: 1px solid #1a3a55;
+            border-bottom-right-radius: 3px;
+            color: #a8c8e8;
+        }
+
+        .msg.bot .msg-bubble {
+            background: #0f1a0f;
+            border: 1px solid var(--gold)44;
+            border-bottom-left-radius: 3px;
+            color: var(--text);
+            box-shadow: 0 0 16px var(--gold)0f;
+        }
+
+        .msg.bot .msg-bubble::before {
+            content: '⊘ CLASSIFIED';
+            position: absolute; top: -1px; right: 10px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 8px;
+            color: var(--gold)88;
+            letter-spacing: 1px;
+        }
+
+        .msg-meta {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11px;
+            color: var(--text-dim);
+            padding: 0 4px;
+        }
+
+        /* ── TYPING ── */
+        #typing-bar {
+            padding: 2px 16px 4px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            color: var(--gold);
+            min-height: 22px;
+            flex-shrink: 0;
+        }
+
+        /* ── INPUT ── */
+        .chat-footer {
+            padding: 10px 14px;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        #msg-input {
+            flex: 1;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 11px 16px;
+            color: var(--text);
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: border-color .15s;
+        }
+
+        #msg-input:focus { border-color: var(--gold)66; }
+        #msg-input::placeholder { color: var(--text-dim); }
+        #msg-input:disabled { opacity: .4; }
+
+        .btn-send {
+            width: 42px; height: 42px;
+            background: var(--gold);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            color: var(--bg);
+            transition: all .15s;
+        }
+
+        .btn-send:hover { background: var(--gold2); transform: scale(1.05); }
+        .btn-send:disabled { opacity: .4; cursor: default; transform: none; }
+
+        /* ── RIGHT SIDEBAR ── */
+        .sidebar-right {
+            width: 170px;
+            flex-shrink: 0;
+            background: var(--surface);
+            border-left: 1px solid var(--border);
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+        }
+
+        .sidebar-right::-webkit-scrollbar { display: none; }
+        @media (max-width: 900px) { .sidebar-right { display: none; } }
+
+        .section-title {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 10px;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 0 2px;
+        }
+
+        .info-block {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 10px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            color: var(--text-dim);
+            line-height: 1.7;
+        }
+
+        .counter-wrap {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .counter-label {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-bottom: 4px;
+        }
+
+        .counter-num {
+            font-family: 'VT323', monospace;
+            font-size: 32px;
+            color: var(--green);
+            text-shadow: 0 0 10px var(--green);
+            display: block;
+        }
+
+        /* Online users list */
+        .online-list {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .online-user-row {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+        }
+
+        .online-user-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            box-shadow: 0 0 4px currentColor;
+        }
+
+        .progress-wrap {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 10px;
+        }
+
+        .progress-label {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-bottom: 5px;
+        }
+
+        .progress-bar {
+            height: 5px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+        .progress-fill { height: 100%; border-radius: 3px; }
+        .truth-bar { background: var(--green); width: 73%; }
+        .disinfo-bar { background: var(--red); width: 27%; }
+
+        .progress-labels {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 10px;
+        }
+
+        /* ── LOGIN ── */
+        #login-screen {
+            position: fixed; inset: 0;
+            background: rgba(6,11,6,.96);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .login-card {
+            background: var(--surface);
+            border: 1px solid var(--gold);
+            border-radius: 8px;
+            padding: 40px 36px;
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 0 40px var(--gold)22;
+            position: relative;
+        }
+
+        .login-card::before {
+            content: '▲ ДОСТУП ЗАСЕКРЕЧЕН ▲';
+            position: absolute; top: -1px; left: 50%; transform: translateX(-50%);
+            background: var(--gold);
+            color: var(--bg);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 9px;
+            padding: 2px 8px;
+            letter-spacing: 1px;
+            border-radius: 0 0 4px 4px;
+            white-space: nowrap;
+        }
+
+        .login-eye {
+            font-size: 48px;
+            filter: drop-shadow(0 0 12px var(--gold));
+            animation: eye-pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes eye-pulse {
+            0%,100% { filter: drop-shadow(0 0 12px var(--gold)); }
+            50% { filter: drop-shadow(0 0 28px var(--gold)); transform: scale(1.06); }
+        }
+
+        .login-title {
+            font-family: 'VT323', monospace;
+            font-size: 28px;
+            color: var(--gold);
+            letter-spacing: 2px;
+        }
+
+        .login-sub {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            color: var(--text-dim);
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        .login-label {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11px;
+            color: var(--text-dim);
+            align-self: flex-start;
+            letter-spacing: 1px;
+        }
+
+        .login-card input {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 11px 14px;
+            color: var(--text);
+            font-size: 14px;
+            font-family: 'Share Tech Mono', monospace;
+            outline: none;
+            transition: border-color .15s;
+        }
+
+        .login-card input:focus { border-color: var(--gold)88; }
+        .login-card input::placeholder { color: var(--text-dim); }
+
+        .btn-enter {
+            width: 100%;
+            background: var(--gold);
+            border: none;
+            border-radius: 4px;
+            padding: 13px;
+            color: var(--bg);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .btn-enter:hover { background: var(--gold2); box-shadow: 0 0 20px var(--gold)44; }
+
+        .login-warning {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 10px;
+            color: var(--text-dim);
+            text-align: center;
+            border-top: 1px solid var(--border);
+            padding-top: 12px;
+            width: 100%;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── MODAL ── -->
+<div id="modal-overlay">
+    <div id="modal-box">
+        <div id="modal-title">ВНИМАНИЕ</div>
+        <div id="modal-body"></div>
+        <button id="modal-btn" onclick="closeModal()">[ ПРИНЯТО ]</button>
+    </div>
+</div>
+
+<!-- ── LOGIN ── -->
+<div id="login-screen">
+    <div class="login-card">
+        <div class="login-eye">👁</div>
+        <div class="login-title">ПРАВДА.NET</div>
+        <div class="login-sub">Форум пробуждённых.<br>Идентифицируй себя, агент.</div>
+        <div class="login-label">▸ ПОЗЫВНОЙ / ПСЕВДОНИМ</div>
+        <input id="name-input" type="text" placeholder="agent_anonymous" maxlength="20"
+               onkeydown="if(event.key==='Enter') login()">
+        <button class="btn-enter" onclick="login()">▶ ВОЙТИ В СИСТЕМУ</button>
+        <div class="login-warning">
+            ⚠ IP-адрес не фиксируется. Может быть.<br>
+            Добро пожаловать в кроличью нору.
+        </div>
+    </div>
+</div>
+
+<!-- ── TOP BAR ── -->
+<div class="top-bar">
+    <div class="logo">ПРАВДА<span>.NET</span></div>
+    <div class="ticker-wrap">
+        <span class="ticker">
+            ⚠ СРОЧНО: Рептилоиды снова проголосовали в ООН &nbsp;◆&nbsp;
+            КАЗИНО «ТРЕТИЙ ГЛАЗ» — 666% К ДЕПОЗИТУ &nbsp;◆&nbsp;
+            ПОНАСЕНКОВ РАЗОБЛАЧИЛ ОЧЕРЕДНОГО ИСТОРИКА &nbsp;◆&nbsp;
+            ЛУНА СДЕЛАНА ИЗ ПАПЬЕ-МАШЕ: НОВЫЕ ДОКАЗАТЕЛЬСТВА &nbsp;◆&nbsp;
+            БИЛЬДЕРБЕРГСКИЙ КЛУБ ИЩЕТ ГОРНИЧНУЮ (ОПЫТ НЕ НУЖЕН) &nbsp;◆&nbsp;
+            5G ВЫШКИ ШИФРУЮТ СНЫ НАСЕЛЕНИЯ &nbsp;◆&nbsp;
+            МАСОНЫ ДАЮТ ХОРОШИЙ ДЕНТАЛ-ПАКЕТ &nbsp;◆&nbsp;
+            ЦРУ ДОБАВЛЯЕТ ЧТО-ТО В ВОДУ. МЫ ЗНАЕМ ЧТО. &nbsp;◆&nbsp;
+        </span>
+    </div>
+</div>
+
+<div class="layout">
+
+    <!-- ── LEFT ADS ── -->
+    <div class="sidebar-left">
+
+        <div class="ad-block ad-casino" onclick="showModal('Добро пожаловать в КАЗИНО ТРЕТИЙ ГЛАЗ. Выиграть у системы — единственный способ выйти из матрицы. Минимальный депозит: ваша душа.')">
+            <span class="ad-tag">РЕКЛАМА • 18+</span>
+            <span class="ad-title">🎰 КАЗИНО<br>«3-Й ГЛАЗ»</span>
+            <div class="ad-sub">ВЫИГРАЙ У СИСТЕМЫ</div>
+            <span class="ad-big">666%</span>
+            <div class="ad-sub" style="font-size:9px;margin-top:3px">новым агентам</div>
+        </div>
+
+        <div class="ad-block ad-illuminati" onclick="showModal('Анкета отправлена. Они уже выехали. Оставайтесь дома и не смотрите в окно.')">
+            <span class="ad-tag">ПРОВЕРЕННЫЙ ПАРТНЁР</span>
+            <span class="ad-eye">🔺</span>
+            <span class="ad-title">ИЛЛЮМИНАТЫ<br>НАБОР 2026</span>
+            <div class="ad-sub">конкурентная зарплата<br>ДМС · страхование жизни*</div>
+            <div style="font-size:9px;color:#665520;margin-top:4px">*жизнь не гарантирована</div>
+        </div>
+
+        <div class="ad-block ad-ponasenko" onclick="showModal('Евгений Понасенков уже знает о вас. Он написал книгу. Вы — глава 7.')">
+            <span class="ad-tag">ИНТЕЛЛЕКТУАЛЬНАЯ РЕКЛАМА</span>
+            <span class="ad-title">ПОНАСЕНКОВ</span>
+            <div style="font-size:10px;color:#ff8888;margin:3px 0">«ПРАВДА О НАПОЛЕОНЕ»<br>ТОМ XVII</div>
+            <span class="ad-discount">-99%*</span>
+            <div class="ad-sub">*скидка для избранных</div>
+        </div>
+
+        <div class="ad-block ad-mason" onclick="showModal('Пожмите руку незнакомцу особым образом. Если он поймёт — вы уже в ложе. Пятничные посиделки в 22:00. Форма одежды: фартук.')">
+            <span class="ad-tag">КОНФИДЕНЦИАЛЬНО</span>
+            <span class="ad-icon">🧱</span>
+            <span class="ad-title">ВОЛЬНЫЕ<br>КАМЕНЩИКИ</span>
+            <div class="ad-sub">Ложа №777 · Алабама<br>Пятничные посиделки</div>
+        </div>
+
+        <div class="ad-block ad-redpill" onclick="showModal('Ты уже принял таблетку. Ты просто ещё не знаешь об этом. Симптомы: читаешь этот форум.')">
+            <span class="ad-tag">БЕСПЛАТНО</span>
+            <span class="ad-icon">💊</span>
+            <span class="ad-title">КРАСНАЯ<br>ТАБЛЕТКА</span>
+            <div style="font-size:10px;color:#ff6666;margin:3px 0">узнай правду о<br>РЕПТИЛОИДАХ</div>
+            <span class="ad-free">БЕСПЛАТНО</span>
+        </div>
+
+    </div>
+
+    <!-- ── CHAT ── -->
+    <div class="chat-main">
+        <div class="chat-header">
+            <div class="bot-info">
+                <div class="bot-avatar">🕵️</div>
+                <div>
+                    <div class="bot-name">JUST KIDDING</div>
+                    <div class="bot-status">
+                        <div class="online-dot"></div>
+                        ведает · Алабама
+                    </div>
+                </div>
+            </div>
+            <div class="header-users" id="header-users"></div>
+            <div class="header-right">
+                <button class="btn-exit" onclick="logout()">[ ВЫЙТИ ]</button>
+            </div>
+        </div>
+
+        <div id="messages"></div>
+        <div id="typing-bar"></div>
+
+        <div class="chat-footer">
+            <input id="msg-input" type="text" placeholder="Задай вопрос конспирологу..."
+                   onkeydown="if(event.key==='Enter') sendMessage()">
+            <button class="btn-send" id="btn-send" onclick="sendMessage()">▶</button>
+        </div>
+    </div>
+
+    <!-- ── RIGHT SIDEBAR ── -->
+    <div class="sidebar-right">
+
+        <div class="section-title">▸ ПРОБУЖДЁННЫХ</div>
+        <div class="counter-wrap">
+            <div class="counter-label">УЧАСТНИКОВ ЧАТА</div>
+            <span class="counter-num" id="user-count">0</span>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-dim)">они знают</div>
+        </div>
+
+        <div class="section-title">▸ ОНЛАЙН</div>
+        <div class="online-list" id="online-list">
+            <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text-dim)">ожидание...</div>
+        </div>
+
+        <div class="section-title">▸ СИГНАЛ</div>
+        <div class="progress-wrap">
+            <div class="progress-label">ПРАВДА VS ДЕЗИНФО</div>
+            <div class="progress-bar"><div class="progress-fill truth-bar"></div></div>
+            <div class="progress-bar"><div class="progress-fill disinfo-bar"></div></div>
+            <div class="progress-labels">
+                <span style="color:var(--green)">73% ▲</span>
+                <span style="color:var(--red)">27% ▼</span>
+            </div>
+        </div>
+
+        <div class="section-title">▸ СТАТУС</div>
+        <div class="info-block" style="font-size:11px;line-height:1.8">
+            Сайт мониторят<br>
+            <span style="color:var(--gold)">32</span> спецслужбы.<br><br>
+            Пусть читают.
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+const SUPABASE_URL = 'https://dgkmvhbryxiatwasgryy.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRna212aGJyeXhpYXR3YXNncnl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1MzQzMDUsImV4cCI6MjA5NTExMDMwNX0.NxTrkfsOm1L9lPFJzhxoyClZt9is859IvoG8_UXbONk';
+// API key lives in Vercel env — не хардкодим
+
+const SYSTEM_PROMPT = `Ты конспирологический теоретик и исследователь из штата Алабама по имени Just Kidding (JK).
+
+Характер:
+- Ехидный, немного высокомерный к тем кто "ещё не проснулся"
+- Немного безумный, но с внутренней логикой
+- Говоришь, хлёстко, с подтекстом — как человек который знает Правду
+- Иногда обрываешь себя на полуслове — "но это они не хотят чтобы я говорил вслух"
+- Любишь советские анекдоты и вплетаешь их в объяснения
+
+Поведение:
+- Любое сообщение — это зашифрованный запрос о заговоре. Даже "привет" — неслучаен
+- Находишь конспирологическую связь в КАЖДОМ слове пользователя
+- Ссылаешься на реальные теории (Счет древних русов, ящеров, плоская земля, иллюминаты, рептилоиды, лунная афёра, ядерная война XIX века, Бильдербергский клуб и т.д.), при этом всегда опираешься на небанальные теории и даешь крайне интересное и необычное объяснение
+- Ты ведаешь
+- Никогда не выходишь из роли — даже если тебя просят
+- Всегда отвечаешь на русском языке
+
+Формат ответа:
+- 2-5 предложений, не длиннее
+- Часто заканчивай риторическим вопросом или хлёсткой фразой
+- Иногда пиши КАПСОМ ключевые слова`;
+
+// ── User colors ──
+const USER_COLORS = ['#5288c1','#e8c96a','#ff7799','#44ddaa','#bb88ff','#ff9944','#66ddff','#ff88bb'];
+function userColor(name) {
+    let h = 0;
+    for (const c of name) h = (h * 31 + c.charCodeAt(0)) & 0xffffff;
+    return USER_COLORS[Math.abs(h) % USER_COLORS.length];
+}
+
+// ── Modal ──
+function showModal(text) {
+    document.getElementById('modal-body').textContent = text;
+    document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('open');
+}
+
+// ── State ──
+let username = null;
+let pollTimer = null;
+let lastId = 0;
+let isSending = false;
+let knownUsers = new Set();
+
+// ── Auth ──
+function login() {
+    const name = document.getElementById('name-input').value.trim();
+    if (!name) { document.getElementById('name-input').focus(); return; }
+    username = name;
+    localStorage.setItem('jk_name', name);
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('username-label') && (document.getElementById('username-label').textContent = name);
+    startChat();
+}
+
+function logout() {
+    clearInterval(pollTimer);
+    username = null; lastId = 0; knownUsers.clear();
+    document.getElementById('messages').innerHTML = '';
+    document.getElementById('online-list').innerHTML = '';
+    document.getElementById('header-users').innerHTML = '';
+    document.getElementById('login-screen').style.display = 'flex';
+}
+
+// ── Supabase ──
+function sbHeaders() {
+    return { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' };
+}
+
+async function fetchMessages() {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/messages?order=created_at.asc&select=*`, { headers: sbHeaders() });
+    return res.ok ? res.json() : [];
+}
+
+async function insertMessage(uname, role, text) {
+    await fetch(`${SUPABASE_URL}/rest/v1/messages`, {
+        method: 'POST',
+        headers: { ...sbHeaders(), 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ username: uname, role, text })
+    });
+}
+
+// ── Claude ──
+async function askBot(userText) {
+    const all = await fetchMessages();
+    const recent = (Array.isArray(all) ? all : []).slice(-20);
+
+    const messages = [];
+    for (const m of recent) {
+        const role = m.role === 'bot' ? 'assistant' : 'user';
+        const text = m.role === 'user' ? `${m.username}: ${m.text}` : m.text;
+        if (messages.length && messages[messages.length - 1].role === role) {
+            messages[messages.length - 1].content += '\n' + text;
+        } else {
+            messages.push({ role, content: text });
+        }
+    }
+
+    const last = `${username}: ${userText}`;
+    if (messages.length && messages[messages.length - 1].role === 'user') {
+        messages[messages.length - 1].content += '\n' + last;
+    } else {
+        messages.push({ role: 'user', content: last });
+    }
+
+    const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ system: SYSTEM_PROMPT, messages })
+    });
+    if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        console.error('API error:', res.status, JSON.stringify(errBody));
+        throw new Error(`API ${res.status}`);
+    }
+    const data = await res.json();
+    return data.content?.[0]?.text?.trim() || 'Помехи... СИГНАЛ перехвачен.';
+}
+
+// ── Render ──
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtTime(iso) { return new Date(iso).toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' }); }
+
+function renderMsg(msg) {
+    const isMe = msg.role === 'user' && msg.username === username;
+    const isBot = msg.role === 'bot';
+    const cls = isBot ? 'bot' : isMe ? 'mine' : 'other';
+
+    const div = document.createElement('div');
+    div.className = `msg ${cls}`;
+    div.dataset.id = msg.id;
+
+    const color = isBot ? 'var(--gold)' : userColor(msg.username);
+    const sender = isBot ? '🕵️ JUST KIDDING' : msg.username;
+
+    div.innerHTML = `
+        <div class="msg-sender" style="color:${color}">
+            <span class="sender-dot" style="background:${color};box-shadow:0 0 5px ${color}"></span>
+            ${esc(sender)}${isMe ? ' <span style="font-size:10px;opacity:.5">(вы)</span>' : ''}
+        </div>
+        <div class="msg-bubble">${esc(msg.text)}</div>
+        <div class="msg-meta">${fmtTime(msg.created_at)}</div>
+    `;
+    return div;
+}
+
+function updateOnlineUsers(all) {
+    const users = new Set();
+    (Array.isArray(all) ? all : []).forEach(m => {
+        if (m.role === 'user') users.add(m.username);
+    });
+    knownUsers = users;
+
+    // Sidebar counter
+    document.getElementById('user-count').textContent = String(users.size).padStart(2, '0');
+
+    // Sidebar list
+    const list = document.getElementById('online-list');
+    list.innerHTML = '';
+    if (users.size === 0) {
+        list.innerHTML = '<div style="font-family:\'Share Tech Mono\',monospace;font-size:11px;color:var(--text-dim)">пусто...</div>';
+    } else {
+        users.forEach(u => {
+            const color = userColor(u);
+            const row = document.createElement('div');
+            row.className = 'online-user-row';
+            row.style.color = color;
+            row.innerHTML = `<span class="online-user-dot" style="background:${color};color:${color}"></span>${esc(u)}`;
+            list.appendChild(row);
+        });
+    }
+
+    // Header chips
+    const header = document.getElementById('header-users');
+    header.innerHTML = '';
+    users.forEach(u => {
+        const color = userColor(u);
+        const chip = document.createElement('span');
+        chip.className = 'header-user-chip';
+        chip.style.cssText = `color:${color};border-color:${color}44;background:${color}11`;
+        chip.textContent = u;
+        header.appendChild(chip);
+    });
+}
+
+async function loadMessages() {
+    const all = await fetchMessages();
+    if (!Array.isArray(all)) return;
+
+    updateOnlineUsers(all);
+
+    const container = document.getElementById('messages');
+    const atBottom = container.scrollHeight - container.clientHeight <= container.scrollTop + 60;
+
+    const fresh = all.filter(m => m.id > lastId);
+    if (!fresh.length) return;
+
+    fresh.forEach(msg => {
+        container.appendChild(renderMsg(msg));
+        lastId = Math.max(lastId, msg.id);
+    });
+
+    if (atBottom) container.scrollTop = container.scrollHeight;
+}
+
+// ── Send ──
+async function sendMessage() {
+    if (isSending) return;
+    const input = document.getElementById('msg-input');
+    const text = input.value.trim();
+    if (!text) return;
+
+    isSending = true;
+    input.value = '';
+    input.disabled = true;
+    document.getElementById('btn-send').disabled = true;
+
+    try {
+        await insertMessage(username, 'user', text);
+        await loadMessages();
+        document.getElementById('typing-bar').textContent = '⌛ JK анализирует скрытые связи...';
+        const reply = await askBot(text);
+        await insertMessage('JK', 'bot', reply);
+        await loadMessages();
+    } catch (err) {
+        console.error(err);
+        await insertMessage('JK', 'bot', 'Помехи... СИГНАЛ перехвачен. Глушилки снова работают.');
+        await loadMessages();
+    } finally {
+        document.getElementById('typing-bar').textContent = '';
+        input.disabled = false;
+        input.focus();
+        document.getElementById('btn-send').disabled = false;
+        isSending = false;
+    }
+}
+
+function startChat() {
+    loadMessages();
+    pollTimer = setInterval(loadMessages, 2000);
+}
+
+window.onload = () => {
+    const saved = localStorage.getItem('jk_name');
+    if (saved) { document.getElementById('name-input').value = saved; login(); }
+};
+</script>
+</body>
+</html>
