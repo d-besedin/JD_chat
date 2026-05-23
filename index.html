@@ -775,6 +775,61 @@
             width: 100%;
             line-height: 1.6;
         }
+        /* ── MOBILE ── */
+        @media (max-width: 640px) {
+
+            /* Полная высота с учётом адресной строки браузера */
+            body { overflow: hidden; }
+            .layout { height: calc(100dvh - 44px); }
+
+            /* Верхняя строка: только лого, без тикера */
+            .ticker-wrap { display: none; }
+            .top-bar { padding: 0 12px; }
+            .logo { font-size: 20px; }
+
+            /* Шапка чата: компактная */
+            .chat-header { padding: 8px 12px; gap: 8px; flex-wrap: nowrap; }
+            .bot-avatar { width: 36px; height: 36px; font-size: 17px; }
+            .bot-name { font-size: 13px; }
+            .bot-status { font-size: 11px; }
+
+            /* Онлайн-чипы в шапке: скрыть на узких экранах, показывать кол-во */
+            .header-users { display: none; }
+
+            /* Кнопка выхода: короче */
+            .btn-exit { padding: 5px 8px; font-size: 11px; }
+
+            /* Сообщения */
+            #messages { padding: 10px 10px; gap: 8px; }
+            .msg { max-width: 88%; }
+            .msg-bubble { font-size: 14px; padding: 9px 12px; }
+            .msg-sender { font-size: 11px; }
+            .msg-meta { font-size: 10px; }
+
+            /* Инпут: font-size 16px чтобы iOS не зумил */
+            .chat-footer { padding: 8px 10px; gap: 8px; }
+            #msg-input {
+                font-size: 16px;
+                padding: 10px 14px;
+                border-radius: 22px;
+            }
+            .btn-send { width: 44px; height: 44px; flex-shrink: 0; }
+
+            /* Тайпинг-бар */
+            #typing-bar { font-size: 11px; padding: 2px 12px; }
+
+            /* Логин */
+            .login-card { width: 92vw; padding: 32px 24px; }
+            .login-title { font-size: 24px; }
+            .login-eye { font-size: 40px; }
+        }
+
+        /* Безопасные зоны для iPhone (notch / home bar) */
+        @supports (padding: env(safe-area-inset-bottom)) {
+            .chat-footer {
+                padding-bottom: calc(10px + env(safe-area-inset-bottom));
+            }
+        }
     </style>
 </head>
 <body>
